@@ -1,0 +1,40 @@
+[Unit]
+Description=Gopenclaw - OpenClaw Go Rewrite
+Documentation=https://github.com/gopenclaw/gopenclaw
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=gopenclaw
+Group=gopenclaw
+ExecStart=/usr/local/bin/gopenclaw gateway --config /etc/gopenclaw/openclaw.json
+Restart=always
+RestartSec=10
+
+# Environment
+Environment=OPENAI_API_KEY=
+Environment=GOPENCLAW_HOME=/var/lib/gopenclaw
+
+# Directories
+RuntimeDirectory=gopenclaw
+RuntimeDirectoryMode=0755
+StateDirectory=gopenclaw
+StateDirectoryMode=0755
+ConfigurationDirectory=gopenclaw
+ConfigurationDirectoryMode=0755
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/gopenclaw
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=gopenclaw
+
+[Install]
+WantedBy=multi-user.target

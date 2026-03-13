@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  gopenclaw:
+    build: .
+    container_name: gopenclaw
+    ports:
+      - "11999:11999"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GOPENCLAW_HOME=/app/config
+    volumes:
+      - ./config:/app/config
+      - ./sessions:/app/sessions
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:11999/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  # 可选：Telegram Bot
+  # telegram:
+  #   build: .
+  #   container_name: gopenclaw-telegram
+  #   command: ["telegram", "--token=${TELEGRAM_BOT_TOKEN}"]
+  #   environment:
+  #     - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+  #   restart: unless-stopped

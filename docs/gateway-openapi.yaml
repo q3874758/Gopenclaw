@@ -1,0 +1,153 @@
+openapi: 3.0.3
+info:
+  title: Gopenclaw Gateway API
+  description: |
+    Gopenclaw Gateway 通过 WebSocket 提供 JSON-RPC 风格的消息接口。
+    客户端连接 `ws://<host>:<port>/ws` 后，发送带 `method` 和 `params` 的 JSON 消息，
+    服务端返回 `result` 或 `error`。
+  version: 1.0.0
+  contact:
+    name: Gopenclaw
+
+servers:
+  - url: ws://127.0.0.1:11999
+    description: 默认 Gateway 地址（端口可配置）
+
+paths:
+  /ws:
+    get:
+      summary: WebSocket 连接
+      description: 建立 WebSocket 连接后，所有请求/响应通过此连接以 JSON 消息形式交换。
+      parameters: []
+      responses:
+        '101':
+          description: Switching Protocols
+
+components:
+  schemas:
+    Message:
+      type: object
+      description: 单条 WS 消息（JSON-RPC 风格）
+      properties:
+        id:
+          oneOf: [ { type: string }, { type: integer } ]
+          description: 请求 ID，可选
+        method:
+          type: string
+          description: 方法名，如 config.get, agent.invoke
+        params:
+          type: object
+          description: 请求参数
+        result:
+          description: 响应结果（服务端返回）
+        error:
+          $ref: '#/components/schemas/RPCError'
+      example:
+        method: config.get
+        params: {}
+
+    RPCError:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        data:
+          type: object
+
+    AgentInvokeParams:
+      type: object
+      required: [ message ]
+      properties:
+        message:
+          type: string
+          description: 用户输入文本
+        sessionId:
+          type: string
+          description: 会话 ID，可选
+        stream:
+          type: boolean
+          default: true
+
+    AgentInvokeResult:
+      type: object
+      properties:
+        text:
+          type: string
+        sessionId:
+          type: string
+
+    AgentStreamChunk:
+      type: object
+      description: 流式响应中的单块
+      properties:
+        chunk:
+          type: string
+
+    ConfigGetResult:
+      type: object
+      properties:
+        config:
+          type: object
+
+    SessionsListResult:
+      type: object
+      properties:
+        sessions:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              label: { type: string }
+              updatedAt: { type: integer }
+
+    NodesListResult:
+      type: object
+      properties:
+        nodes:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              status: { type: string }
+
+  x-methods:
+    config.get:
+      summary: 获取配置
+      params: {}
+      result: ConfigGetResult
+    config.set:
+      summary: 设置配置项
+      params: { key: string, value: any }
+      result: { ok: boolean }
+    config.patch:
+      summary: 部分更新配置
+      params: { patch: object }
+      result: { ok: boolean }
+    sessions.list:
+      summary: 列出会话
+      params: { limit?: number, offset?: number, filter?: string }
+      result: SessionsListResult
+    sessions.get:
+      summary: 获取会话详情
+      params: { id: string }
+      result: { session: object }
+    agent.invoke:
+      summary: 调用 Agent（支持流式）
+      params: AgentInvokeParams
+      result: AgentInvokeResult（或流式 chunk）
+    nodes.list:
+      summary: 列出节点
+      params: {}
+      result: NodesListResult
+    tools.catalog:
+      summary: 获取工具目录
+      params: {}
+      result: { tools: array }
+    health:
+      summary: 健康检查（HTTP GET /health）
+      params: {}
+      result: { ok: boolean, uptimeMs?: number }

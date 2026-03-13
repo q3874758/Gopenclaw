@@ -1,0 +1,27 @@
+# Binaries
+gopenclaw
+gopenclaw.exe
+openclaw
+openclaw.exe
+*.exe
+*.test
+
+# Vendor
+vendor/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.bak
+
+# Go
+*.test
+coverage.txt
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backups
+*.zip
